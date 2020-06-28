@@ -5,7 +5,7 @@ import './index.css';
 
 function Square(props) {
     return (
-        <button className="square" onClick={props.onClick}>
+        <button className="square" onClick={props.onClick} style={props.style}>
             {props.value}
         </button>
     );
@@ -21,7 +21,7 @@ class Board extends React.Component {
     }
 
     renderSquare(i) {
-        return <Square value={this.props.squares[i]} onClick={() => this.props.onClick(i)} />;
+        return <Square value={this.props.squares[i]} onClick={() => this.props.onClick(i)} style={this.props.winnerTile? this.props.winnerTile.includes(i)? {background: 'green'}: null: null}/>;
     }
 
     render() {
@@ -57,6 +57,7 @@ class Game extends React.Component {
             }],
             xIsNext: true,
             stepNumber: 0,
+            ascending: true,
         }
     }
     render() {
@@ -76,14 +77,15 @@ class Game extends React.Component {
         
         let status;
         if (winner) {
-            status = 'Winner: ' + winner;
+            status = 'Winner: ' + winner[0];
         } else {
-            status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+            if(this.state.stepNumber === 9) status = 'Draw!';
+            else status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
         }
         return (
             <div className="game">
                 <div className="game-board">
-                    <Board squares={current.squares} onClick={(i) => this.handleClick(i)}/>
+                    <Board squares={current.squares} onClick={(i) => this.handleClick(i)} winnerTile={winner? [winner[1], winner[2], winner[3]]: null}/>
                 </div>
                 <div className="game-info">
                     <div>{status}</div>
@@ -117,6 +119,12 @@ class Game extends React.Component {
     });
 
     }
+
+    toggleHistory() {
+        this.setState( {
+            ascending: !this.state.ascending,
+        });
+    }
 }
 
 // ========================================
@@ -140,7 +148,7 @@ function calculateWinner(squares) {
     for (let i = 0; i < lines.length; i++) {
         const [a, b, c] = lines[i];
         if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-            return squares[a];
+            return [squares[a], a, b, c];
         }
     }
     return null;
